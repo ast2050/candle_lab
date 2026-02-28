@@ -224,7 +224,7 @@
 
   <!-- ── TIMER TAB ── -->
   <div id="tab-timer" class="page active">
-    <div class="sec-title">実験タイマー（同時最大5件）</div>
+    <div class="sec-title">実験タイマー（同時最大10件）</div>
     <button class="add-exp-btn" id="add-exp-btn" onclick="openAddExpModal()">
       <span style="font-size:20px">＋</span> 新しい実験を開始
     </button>
@@ -293,7 +293,7 @@
         <ul style="margin:0;padding-left:16px;">
           <li>「設定」でワックスマスタを先に登録</li>
           <li>「レシピ」タブでキャンドルのレシピを登録</li>
-          <li>「タイマー」タブで実験を開始（最大5件同時）</li>
+          <li>「タイマー」タブで実験を開始（最大10件同時）</li>
           <li>ブラウザを閉じても経過時間は保持されます</li>
           <li>📍ラップで時点スナップショット＋メモを記録</li>
           <li>「完了」で実験データが履歴に保存されます</li>
@@ -557,7 +557,7 @@ function updateTimerDisplays() {
 function renderTimers() {
   const container = document.getElementById('timers-list');
   const addBtn    = document.getElementById('add-exp-btn');
-  addBtn.style.display = experiments.length >= 5 ? 'none' : 'flex';
+  addBtn.style.display = experiments.length >= 10 ? 'none' : 'flex';
 
   if (experiments.length === 0) {
     container.innerHTML = `
@@ -670,7 +670,7 @@ function deleteExp(id) {
 //  ADD EXPERIMENT MODAL
 // ════════════════════════════════════════════════════════════
 function openAddExpModal() {
-  if (experiments.length >= 5) { alert('同時計測は最大5件までです'); return; }
+  if (experiments.length >= 10) { alert('同時計測は最大10件までです'); return; }
   if (masters.length === 0) {
     alert('先に「レシピ」タブでキャンドルのレシピを登録してください');
     switchTab('masters'); return;
