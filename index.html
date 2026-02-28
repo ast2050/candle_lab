@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -73,10 +74,46 @@
   .timer-card.running { border-color: var(--sage); background: linear-gradient(135deg, #e6f0e5 0%, #dce9db 100%); box-shadow: 0 4px 18px rgba(143,159,141,.2); }
   .timer-card.paused { border-color: var(--beige); background: linear-gradient(135deg, #f9f5f0 0%, #f2ede4 100%); }
 
-  .timer-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-  .timer-name {font-size: 1.25rem;font-weight: 700;color: var(--sage-vd);margin-bottom: 4px;max-width: calc(100% - 100px);display: block;}
+  /* ── [修正] タイマーヘッダー：左右を flex で分割 ── */
+  .timer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;          /* 左右の最低間隔を確保 */
+    margin-bottom: 10px;
+  }
+
+  /* ── [修正] 左エリア：flex:1 で残り幅を全部使う ── */
+  .timer-header-left {
+    flex: 1;
+    min-width: 0;       /* flex子要素がはみ出さないための必須設定 */
+  }
+
+  /* ── [修正] 作品名：max-width を解除し、親幅いっぱいで折り返す ── */
+  .timer-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--sage-vd);
+    margin-bottom: 4px;
+    display: block;
+    max-width: none;          /* 制約を解除 */
+    white-space: normal;      /* 折り返しを許可（縦書き防止） */
+    word-break: break-word;   /* 長い単語も折り返す */
+    overflow-wrap: break-word;
+    line-height: 1.35;
+  }
+
   .timer-meta { font-size: 10px; color: var(--gray); line-height: 1.8; margin-top: 2px; }
-  .timer-status-area { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
+
+  /* ── [修正] 右エリア：幅を固定してはみ出しを防ぐ ── */
+  .timer-status-area {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    flex-shrink: 0;     /* 絶対に縮まないよう固定 */
+    width: 88px;        /* pill + 削除ボタンが収まる最小幅 */
+  }
 
   .timer-display { font-size: 2.9rem; font-weight: 700; color: var(--sage-d); letter-spacing: .03em; line-height: 1; font-variant-numeric: tabular-nums; }
   .timer-sub { font-size: 10px; color: var(--gray); margin-top: 3px; margin-bottom: 14px; }
@@ -154,7 +191,7 @@
 <div id="app">
   <!-- HEADER -->
   <header id="header">
-    <h1>🕯 Candle Lab</h1>
+    <h1>🕯 fleulje Candle Lab</h1>
     <nav id="tabs">
       <button class="tab-btn active" onclick="switchTab('timer')">タイマー</button>
       <button class="tab-btn" onclick="switchTab('masters')">レシピ</button>
@@ -487,7 +524,7 @@ function buildTimerCard(exp) {
     m.size && ('📦 ' + m.size),
   ].filter(Boolean);
 
-  // Laps (show latest 3, reversed)
+  // Laps (show latest 4, reversed)
   let lapsHtml = '';
   if (exp.laps && exp.laps.length > 0) {
     const shown = [...exp.laps].reverse().slice(0, 4);
@@ -516,16 +553,17 @@ function buildTimerCard(exp) {
     </div>`;
   }
 
+  // ── [修正] timer-header 内の左エリアを .timer-header-left で囲む ──
   return `
     <div class="${cardClass}" id="exp-card-${exp.id}">
       <div class="timer-header">
-        <div>
+        <div class="timer-header-left">
           <div class="timer-name">${escHtml(exp.masterName)}</div>
           <div class="timer-meta">${tags.join(' &nbsp;') || '詳細なし'}</div>
         </div>
         <div class="timer-status-area">
           ${pillHtml}
-          <button class="btn btn-danger" style="padding:4px 10px;font-size:11px;border-radius:10px;" onclick="deleteExp('${exp.id}')">削除</button>
+          <button class="btn btn-danger" style="padding:4px 10px;font-size:11px;border-radius:10px;width:100%;" onclick="deleteExp('${exp.id}')">削除</button>
         </div>
       </div>
 
@@ -691,7 +729,6 @@ function openDoneModal(id) {
   document.getElementById('done-exp-id').value = id;
   document.getElementById('done-exp-id').dataset.snapMs = snapMs;
 
-  const m = exp.masterSnapshot || {};
   const lapCount = (exp.laps || []).length;
   const memoCount = (exp.memos || []).length;
   document.getElementById('done-summary').innerHTML = `
@@ -715,10 +752,6 @@ function confirmDone() {
 
   const exp = experiments[expIndex];
 
-  // Build final accumulated (pause if running)
-  let finalMs = snapMs;
-  // We use snapMs captured at modal open time as the definitive total.
-
   // Push to history
   const record = {
     id: newId(),
@@ -726,7 +759,7 @@ function confirmDone() {
     masterId: exp.masterId,
     masterName: exp.masterName,
     masterSnapshot: exp.masterSnapshot || {},
-    accumulatedMs: finalMs,
+    accumulatedMs: snapMs,
     laps: exp.laps || [],
     memos: exp.memos || [],
     createdAt: exp.createdAt,
@@ -741,8 +774,6 @@ function confirmDone() {
 
   closeModal('modal-done');
   renderTimers();
-
-  // Show quick feedback
   showToast('✅ 実験を履歴に保存しました');
 }
 
@@ -762,7 +793,7 @@ function renderMasters() {
   container.innerHTML = masters.map(m => `
     <div class="master-card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-        <div style="flex:1;">
+        <div style="flex:1;min-width:0;">
           <div class="master-card-name">${escHtml(m.name)}</div>
           <div class="master-card-detail">
             ${[
@@ -883,14 +914,14 @@ function renderHistory() {
     return `
       <div class="hist-card">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <div>
+          <div style="flex:1;min-width:0;">
             <div class="hist-name">${escHtml(rec.masterName)}</div>
             <div class="hist-meta">
               ${fmtDatetime(rec.createdAt)} 〜 ${fmtDatetime(rec.finishedAt)}<br>
               ${tags.map(t => `<span class="master-tag">${escHtml(t)}</span>`).join('')}
             </div>
           </div>
-          <button class="btn btn-danger btn-sm" onclick="deleteHistoryItem(${origIdx})">削除</button>
+          <button class="btn btn-danger btn-sm" style="flex-shrink:0;margin-left:8px;" onclick="deleteHistoryItem(${origIdx})">削除</button>
         </div>
         <div class="hist-total">${fmtMsLong(rec.accumulatedMs)}</div>
         ${m.memo ? `<div style="font-size:11px;color:var(--gray);margin-top:5px;">${escHtml(m.memo)}</div>` : ''}
