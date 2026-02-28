@@ -1,30 +1,29 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>fleulje Candle Lab </title>
+<title>fleulje Candle Lab</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --sage:        #8f9f8d;
-    --sage-l:      #a8b5a6;
-    --sage-d:      #7a8878;
-    --sage-vd:     #5c6b5a;
-    --beige:       #d4c5b0;
-    --beige-l:     #e6dcc8;
-    --beige-d:     #c4b49e;
-    --off:         #f5f5f0;
-    --gray:        #b8b8b0;
-    --gray-d:      #8a8a82;
-    --red:         #c87a7a;
-    --amber:       #d4a574;
-    --white:       #ffffff;
-    --text:        #333330;
+    --sage:    #8f9f8d;
+    --sage-l:  #a8b5a6;
+    --sage-d:  #7a8878;
+    --sage-vd: #5c6b5a;
+    --beige:   #d4c5b0;
+    --beige-l: #e6dcc8;
+    --beige-d: #c4b49e;
+    --off:     #f5f5f0;
+    --gray:    #b8b8b0;
+    --gray-d:  #8a8a82;
+    --red:     #c87a7a;
+    --amber:   #d4a574;
+    --white:   #ffffff;
+    --text:    #333330;
   }
   * { font-family: 'Noto Sans JP', sans-serif; box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: linear-gradient(135deg, #f5f5f0 0%, #e8e8dc 100%); min-height: 100vh; }
@@ -43,6 +42,7 @@
   .page { padding: 20px 16px 56px; display: none; }
   .page.active { display: block; }
   .sec-title { font-size: 11px; font-weight: 700; color: var(--sage-d); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 14px; }
+  .sec-divider { border: none; border-top: 1px solid #eae8e0; margin: 24px 0 20px; }
 
   /* ─── BUTTONS ─── */
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: none; cursor: pointer; font-family: inherit; font-weight: 500; transition: all .2s cubic-bezier(.4,0,.2,1); }
@@ -72,93 +72,115 @@
   /* ─── TIMER CARD ─── */
   .timer-card { border-radius: 24px; padding: 18px 16px 14px; margin-bottom: 14px; border: 1.5px solid var(--sage-l); background: linear-gradient(135deg, #f2f6f1 0%, #ebf0ea 100%); transition: all .3s; }
   .timer-card.running { border-color: var(--sage); background: linear-gradient(135deg, #e6f0e5 0%, #dce9db 100%); box-shadow: 0 4px 18px rgba(143,159,141,.2); }
-  .timer-card.paused { border-color: var(--beige); background: linear-gradient(135deg, #f9f5f0 0%, #f2ede4 100%); }
+  .timer-card.paused  { border-color: var(--beige); background: linear-gradient(135deg, #f9f5f0 0%, #f2ede4 100%); }
 
-  /* ── [修正] タイマーヘッダー：左右を flex で分割 ── */
-  .timer-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 10px;          /* 左右の最低間隔を確保 */
-    margin-bottom: 10px;
-  }
-
-  /* ── [修正] 左エリア：flex:1 で残り幅を全部使う ── */
-  .timer-header-left {
-    flex: 1;
-    min-width: 0;       /* flex子要素がはみ出さないための必須設定 */
-  }
-
-  /* ── [修正] 作品名：max-width を解除し、親幅いっぱいで折り返す ── */
-  .timer-name {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--sage-vd);
-    margin-bottom: 4px;
-    display: block;
-    max-width: none;          /* 制約を解除 */
-    white-space: normal;      /* 折り返しを許可（縦書き防止） */
-    word-break: break-word;   /* 長い単語も折り返す */
-    overflow-wrap: break-word;
-    line-height: 1.35;
-  }
-
+  .timer-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .timer-header-left { flex: 1; min-width: 0; }
+  .timer-name { font-size: 1.25rem; font-weight: 700; color: var(--sage-vd); margin-bottom: 4px; display: block; max-width: none; white-space: normal; word-break: break-word; overflow-wrap: break-word; line-height: 1.35; }
   .timer-meta { font-size: 10px; color: var(--gray); line-height: 1.8; margin-top: 2px; }
-
-  /* ── [修正] 右エリア：幅を固定してはみ出しを防ぐ ── */
-  .timer-status-area {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 5px;
-    flex-shrink: 0;     /* 絶対に縮まないよう固定 */
-    width: 88px;        /* pill + 削除ボタンが収まる最小幅 */
-  }
-
+  .timer-status-area { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; width: 88px; }
   .timer-display { font-size: 2.9rem; font-weight: 700; color: var(--sage-d); letter-spacing: .03em; line-height: 1; font-variant-numeric: tabular-nums; }
   .timer-sub { font-size: 10px; color: var(--gray); margin-top: 3px; margin-bottom: 14px; }
 
+  /* ─── TIMER CONTROLS ─── */
   .timer-controls { display: flex; gap: 8px; align-items: center; }
-  .btn-play { width: 56px; height: 56px; border-radius: 50%; font-size: 20px; flex-shrink: 0; }
-  .btn-play.start-btn { background: linear-gradient(135deg, var(--sage), var(--sage-d)); color: #fff; box-shadow: 0 3px 10px rgba(143,159,141,.3); border: none; }
-  .btn-play.pause-btn { background: linear-gradient(135deg, var(--beige), var(--beige-d)); color: #6b5d4f; box-shadow: 0 3px 10px rgba(212,197,176,.3); border: none; }
-  .btn-play:hover { transform: scale(1.05); }
+  .btn-play { width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0; position: relative; }
+
+  /* ── 再生ボタン（CSS三角） ── */
+  .btn-play.start-btn {
+    background: linear-gradient(135deg, var(--sage), var(--sage-d));
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(143,159,141,.3);
+    border: none;
+    font-size: 0; /* テキスト非表示 */
+  }
+  .btn-play.start-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: calc(50% - 6px);
+    transform: translateY(-50%);
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 9px 0 9px 16px;
+    border-color: transparent transparent transparent currentColor;
+  }
+
+  /* ── 一時停止ボタン（CSS二本棒） ── */
+  .btn-play.pause-btn {
+    background: linear-gradient(135deg, var(--beige), var(--beige-d));
+    color: #6b5d4f;
+    box-shadow: 0 3px 10px rgba(212,197,176,.3);
+    border: none;
+    font-size: 0; /* テキスト非表示・絵文字を排除 */
+  }
+  .btn-play.pause-btn::before,
+  .btn-play.pause-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%; transform: translateY(-50%);
+    width: 5px; height: 20px;
+    background: currentColor;
+    border-radius: 2px;
+  }
+  .btn-play.pause-btn::before { left: calc(50% - 8px); }
+  .btn-play.pause-btn::after  { left: calc(50% + 3px); }
+
+  .btn-play:hover  { transform: scale(1.05); }
   .btn-play:active { transform: scale(.97); }
-  .btn-lap { flex: 1; height: 42px; font-size: 12px; font-weight: 600; border-radius: 14px; background: #fff; border: 1.5px solid var(--sage-l); color: var(--sage-d); cursor: pointer; }
+  .btn-lap       { flex: 1; height: 42px; font-size: 12px; font-weight: 600; border-radius: 14px; background: #fff; border: 1.5px solid var(--sage-l); color: var(--sage-d); cursor: pointer; }
   .btn-lap:hover { background: #f5faf4; border-color: var(--sage); }
-  .btn-memo-inline { flex: 1; height: 42px; font-size: 12px; font-weight: 600; border-radius: 14px; background: #fff; border: 1.5px solid var(--beige); color: #8b7355; cursor: pointer; }
+  .btn-memo-inline       { flex: 1; height: 42px; font-size: 12px; font-weight: 600; border-radius: 14px; background: #fff; border: 1.5px solid var(--beige); color: #8b7355; cursor: pointer; }
   .btn-memo-inline:hover { background: #fdf9f3; border-color: var(--beige-d); }
-  .btn-done { height: 42px; padding: 0 14px; font-size: 12px; font-weight: 600; border-radius: 14px; background: #fff; border: 1.5px solid #e4d2d2; color: var(--red); cursor: pointer; flex-shrink: 0; }
+  .btn-done       { height: 42px; padding: 0 14px; font-size: 12px; font-weight: 600; border-radius: 14px; background: #fff; border: 1.5px solid #e4d2d2; color: var(--red); cursor: pointer; flex-shrink: 0; }
   .btn-done:hover { background: #fef5f5; }
 
   /* ─── STATUS PILL ─── */
   .pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 600; }
-  .pill-run { background: #d0ead0; color: #3a6e38; }
+  .pill-run   { background: #d0ead0; color: #3a6e38; }
   .pill-pause { background: #ede8e0; color: #8b7355; }
-  .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: pulse 1.2s ease-in-out infinite; }
+  .pulse-dot  { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: pulse 1.2s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
   /* ─── LAPS / MEMOS ─── */
   .laps-area { margin-top: 12px; max-height: 130px; overflow-y: auto; }
-  .lap-item { display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f0f0ea; font-size: 11px; color: #555; }
-  .lap-badge { font-size: 10px; font-weight: 700; color: var(--sage-d); min-width: 24px; }
-  .lap-time { font-variant-numeric: tabular-nums; color: var(--sage-d); font-weight: 600; min-width: 54px; }
-  .lap-memo { color: var(--gray-d); flex: 1; }
-  .memo-chip { background: #f3f1ec; border-radius: 10px; padding: 5px 10px; margin-bottom: 4px; font-size: 11px; color: #555; }
+  .lap-item   { display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f0f0ea; font-size: 11px; color: #555; }
+  .lap-badge  { font-size: 10px; font-weight: 700; color: var(--sage-d); min-width: 24px; }
+  .lap-time   { font-variant-numeric: tabular-nums; color: var(--sage-d); font-weight: 600; min-width: 54px; }
+  .lap-memo   { color: var(--gray-d); flex: 1; }
+  .memo-chip      { background: #f3f1ec; border-radius: 10px; padding: 5px 10px; margin-bottom: 4px; font-size: 11px; color: #555; }
   .memo-chip-time { font-size: 10px; color: var(--sage-d); font-weight: 600; margin-bottom: 2px; }
-  .expand-link { font-size: 10px; color: var(--sage); cursor: pointer; text-align: right; padding-top: 3px; display: block; }
+  .expand-link    { font-size: 10px; color: var(--sage); cursor: pointer; text-align: right; padding-top: 3px; display: block; }
+
+  /* ─── WAX BLEND DISPLAY ─── */
+  .wax-blend-list { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .wax-chip { display: inline-flex; align-items: center; gap: 3px; background: #e8f0e7; color: var(--sage-vd); border-radius: 8px; padding: 2px 8px; font-size: 10px; font-weight: 600; }
+  .wax-chip-g { color: var(--sage-d); font-weight: 400; }
+
+  /* ─── WAX BLEND ROW (modal) ─── */
+  .wax-blend-row { display: grid; grid-template-columns: 1fr 80px 32px; gap: 6px; align-items: center; margin-bottom: 8px; }
+  .wax-blend-row select { padding: 8px 10px; font-size: 13px; }
+  .wax-blend-row input  { padding: 8px 10px; font-size: 13px; }
+  .wax-row-del { width: 32px; height: 32px; border-radius: 8px; background: #fff; border: 1.5px solid #e4d2d2; color: var(--red); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .2s; }
+  .wax-row-del:hover { background: #fef5f5; }
+  .wax-blend-add { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 12px; background: #f4f6f3; border: 1.5px dashed var(--sage-l); color: var(--sage-d); font-size: 12px; font-weight: 600; cursor: pointer; width: 100%; transition: all .2s; margin-top: 4px; }
+  .wax-blend-add:hover { background: #edf2ec; border-style: solid; }
+  .wax-blend-empty { font-size: 11px; color: var(--gray); padding: 6px 2px; }
+
+  /* ─── WAX MASTER LIST (settings) ─── */
+  .wax-master-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #fff; border-radius: 14px; border: 1.5px solid #eae8e0; margin-bottom: 8px; }
+  .wax-master-name { font-size: 13px; font-weight: 500; color: var(--sage-d); }
 
   /* ─── HISTORY ─── */
-  .hist-card { background: #fff; border-radius: 22px; border: 1.5px solid #eae8e0; padding: 16px; margin-bottom: 13px; }
-  .hist-name { font-size: 15px; font-weight: 600; color: var(--sage-d); margin-bottom: 5px; }
-  .hist-meta { font-size: 11px; color: var(--gray); margin-bottom: 10px; line-height: 1.7; }
-  .hist-total { font-size: 1.7rem; font-weight: 700; color: var(--sage-d); }
+  .hist-card    { background: #fff; border-radius: 22px; border: 1.5px solid #eae8e0; padding: 16px; margin-bottom: 13px; }
+  .hist-name    { font-size: 15px; font-weight: 600; color: var(--sage-d); margin-bottom: 5px; }
+  .hist-meta    { font-size: 11px; color: var(--gray); margin-bottom: 10px; line-height: 1.7; }
+  .hist-total   { font-size: 1.7rem; font-weight: 700; color: var(--sage-d); }
   .hist-divider { border: none; border-top: 1px solid #f0f0ea; margin: 10px 0; }
-  .master-tag { display: inline-block; background: #edf2ec; color: var(--sage-vd); border-radius: 8px; padding: 2px 8px; font-size: 10px; font-weight: 600; margin-right: 4px; margin-bottom: 4px; }
+  .master-tag   { display: inline-block; background: #edf2ec; color: var(--sage-vd); border-radius: 8px; padding: 2px 8px; font-size: 10px; font-weight: 600; margin-right: 4px; margin-bottom: 4px; }
 
-  /* ─── MASTER CARD ─── */
-  .master-card { background: #fff; border-radius: 20px; border: 1.5px solid #eae8e0; padding: 14px 16px; margin-bottom: 10px; }
-  .master-card-name { font-size: 14px; font-weight: 600; color: var(--sage-d); margin-bottom: 5px; }
+  /* ─── RECIPE CARD ─── */
+  .master-card        { background: #fff; border-radius: 20px; border: 1.5px solid #eae8e0; padding: 14px 16px; margin-bottom: 10px; }
+  .master-card-name   { font-size: 14px; font-weight: 600; color: var(--sage-d); margin-bottom: 5px; }
   .master-card-detail { font-size: 11px; color: var(--gray); line-height: 1.8; }
 
   /* ─── MODAL ─── */
@@ -166,20 +188,20 @@
   .modal-box { background: #fff; border-radius: 28px; padding: 28px 22px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; box-shadow: 0 12px 48px rgba(0,0,0,.22); animation: slideUp .25s cubic-bezier(.4,0,.2,1); }
   .modal-box h2 { font-size: 17px; font-weight: 600; color: var(--sage-d); margin: 0 0 20px; }
   .modal-btns { display: flex; gap: 10px; margin-top: 18px; }
-  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  @keyframes fadeIn  { from{opacity:0}              to{opacity:1} }
   @keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
   /* ─── ADD TIMER BTN ─── */
-  .add-exp-btn { width: 100%; padding: 18px; border-radius: 20px; background: linear-gradient(135deg, #f4f6f3, #ecefeb); border: 2px dashed var(--sage-l); color: var(--sage-d); font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; }
+  .add-exp-btn       { width: 100%; padding: 18px; border-radius: 20px; background: linear-gradient(135deg, #f4f6f3, #ecefeb); border: 2px dashed var(--sage-l); color: var(--sage-d); font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; }
   .add-exp-btn:hover { background: linear-gradient(135deg, #edf2ec, #e4eae3); border-style: solid; }
 
   /* ─── EMPTY ─── */
   .empty-state { text-align: center; padding: 48px 20px; color: var(--gray); }
-  .empty-icon { font-size: 52px; margin-bottom: 12px; }
-  .empty-msg { font-size: 13px; line-height: 1.8; }
+  .empty-icon  { font-size: 52px; margin-bottom: 12px; }
+  .empty-msg   { font-size: 13px; line-height: 1.8; }
 
   /* ─── SCROLLBAR ─── */
-  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar       { width: 4px; }
   ::-webkit-scrollbar-thumb { background: var(--beige); border-radius: 4px; }
 
   /* ─── BACKUP TEXTAREA ─── */
@@ -189,9 +211,9 @@
 <body>
 
 <div id="app">
-  <!-- HEADER -->
+  <!-- ── HEADER ── -->
   <header id="header">
-    <h1>🕯 fleulje Candle Lab</h1>
+    <h1>🕯 Candle Lab</h1>
     <nav id="tabs">
       <button class="tab-btn active" onclick="switchTab('timer')">タイマー</button>
       <button class="tab-btn" onclick="switchTab('masters')">レシピ</button>
@@ -200,7 +222,7 @@
     </nav>
   </header>
 
-  <!-- TIMER TAB -->
+  <!-- ── TIMER TAB ── -->
   <div id="tab-timer" class="page active">
     <div class="sec-title">実験タイマー（同時最大5件）</div>
     <button class="add-exp-btn" id="add-exp-btn" onclick="openAddExpModal()">
@@ -209,7 +231,7 @@
     <div id="timers-list"></div>
   </div>
 
-  <!-- MASTERS TAB -->
+  <!-- ── MASTERS TAB ── -->
   <div id="tab-masters" class="page">
     <div class="sec-title">レシピ管理</div>
     <button class="btn btn-primary btn-full" style="margin-bottom:16px;" onclick="openMasterModal(null)">
@@ -218,7 +240,7 @@
     <div id="masters-list"></div>
   </div>
 
-  <!-- HISTORY TAB -->
+  <!-- ── HISTORY TAB ── -->
   <div id="tab-history" class="page">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
       <div class="sec-title" style="margin:0;">実験履歴</div>
@@ -230,8 +252,24 @@
     <div id="history-list"></div>
   </div>
 
-  <!-- SETTINGS TAB -->
+  <!-- ── SETTINGS TAB ── -->
   <div id="tab-settings" class="page">
+
+    <!-- ワックスマスタ管理 -->
+    <div class="sec-title">ワックスマスタ</div>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <input type="text" id="new-wax-name" placeholder="ワックス名（例: ソイワックス C3）" style="flex:1;">
+        <button class="btn btn-primary btn-sm" style="flex-shrink:0;border-radius:12px;" onclick="addWaxMaster()">追加</button>
+      </div>
+      <div id="wax-masters-list">
+        <div class="empty-msg" style="text-align:center;font-size:12px;color:var(--gray);padding:8px 0;">登録されたワックスがありません</div>
+      </div>
+    </div>
+
+    <hr class="sec-divider">
+
+    <!-- バックアップ -->
     <div class="sec-title">データ管理</div>
     <div class="card card-soft" style="margin-bottom:14px;">
       <div style="font-size:13px;font-weight:600;color:var(--sage-d);margin-bottom:6px;">バックアップ（書き出し）</div>
@@ -253,7 +291,8 @@
       <div style="font-size:12px;color:var(--gray);line-height:2;">
         <div style="font-weight:600;color:var(--sage-d);margin-bottom:4px;">💡 使い方</div>
         <ul style="margin:0;padding-left:16px;">
-          <li>「レシピ」タブでキャンドルのマスタを登録</li>
+          <li>「設定」でワックスマスタを先に登録</li>
+          <li>「レシピ」タブでキャンドルのレシピを登録</li>
           <li>「タイマー」タブで実験を開始（最大5件同時）</li>
           <li>ブラウザを閉じても経過時間は保持されます</li>
           <li>📍ラップで時点スナップショット＋メモを記録</li>
@@ -262,11 +301,11 @@
       </div>
     </div>
   </div>
-</div>
+</div><!-- /#app -->
 
-<!-- ============================================================
+<!-- ══════════════════════════════════════════════════════
      MODALS
-     ============================================================ -->
+══════════════════════════════════════════════════════ -->
 
 <!-- ADD EXPERIMENT MODAL -->
 <div id="modal-addexp" class="modal-backdrop" style="display:none;" onclick="closeModalIf(event,'modal-addexp')">
@@ -291,20 +330,21 @@
   <div class="modal-box" onclick="event.stopPropagation()">
     <h2 id="modal-master-title">レシピを登録</h2>
     <input type="hidden" id="master-edit-id">
+
     <div class="form-group">
       <label>作品名 *</label>
       <input type="text" id="m-name" placeholder="例: ジャスミンピラー #3">
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>ワックスの種類</label>
-        <input type="text" id="m-wax" placeholder="例: ソイワックス C3">
-      </div>
-      <div class="form-group">
-        <label>芯のサイズ</label>
-        <input type="text" id="m-wick" placeholder="例: CD-10">
-      </div>
+
+    <!-- ワックス配合 -->
+    <div class="form-group">
+      <label>配合ワックス</label>
+      <div id="wax-rows"></div>
+      <button type="button" class="wax-blend-add" onclick="addWaxRow()">
+        <span style="font-size:16px;line-height:1;">＋</span> ワックスを追加
+      </button>
     </div>
+
     <div class="form-row">
       <div class="form-group">
         <label>香料濃度（%）</label>
@@ -318,6 +358,10 @@
           <option value="その他">その他</option>
         </select>
       </div>
+    </div>
+    <div class="form-group">
+      <label>芯のサイズ</label>
+      <input type="text" id="m-wick" placeholder="例: CD-10">
     </div>
     <div class="form-group">
       <label>メモ</label>
@@ -380,12 +424,13 @@
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════════
-//  DATA LAYER — localStorage keys
-// ═══════════════════════════════════════════════════════════════════
-const LS_MASTERS = 'cl_masters';
-const LS_EXPS    = 'cl_experiments';
-const LS_HISTORY = 'cl_history';
+// ════════════════════════════════════════════════════════════
+//  STORAGE KEYS
+// ════════════════════════════════════════════════════════════
+const LS_MASTERS     = 'cl_masters';
+const LS_EXPS        = 'cl_experiments';
+const LS_HISTORY     = 'cl_history';
+const LS_WAX_MASTERS = 'cl_wax_masters';
 
 function lsGet(key, def) {
   try { const v = localStorage.getItem(key); return v !== null ? JSON.parse(v) : def; }
@@ -395,26 +440,25 @@ function lsSet(key, val) {
   try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
 }
 
-// In-memory state
+// ── In-memory state ──
 let masters     = lsGet(LS_MASTERS, []);
 let experiments = lsGet(LS_EXPS, []);
 let history     = lsGet(LS_HISTORY, []);
+let waxMasters  = lsGet(LS_WAX_MASTERS, []);
 
-function saveMasters()  { lsSet(LS_MASTERS, masters); }
-function saveExps()     { lsSet(LS_EXPS, experiments); }
-function saveHistory()  { lsSet(LS_HISTORY, history); }
+function saveMasters()    { lsSet(LS_MASTERS, masters); }
+function saveExps()       { lsSet(LS_EXPS, experiments); }
+function saveHistory()    { lsSet(LS_HISTORY, history); }
+function saveWaxMasters() { lsSet(LS_WAX_MASTERS, waxMasters); }
 
 function newId() { return Date.now() + '_' + Math.floor(Math.random() * 100000); }
 
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  TIME HELPERS
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 function getElapsedMs(exp) {
   const base = exp.accumulatedMs || 0;
-  if (exp.startedAt) {
-    return base + (Date.now() - exp.startedAt);
-  }
-  return base;
+  return exp.startedAt ? base + (Date.now() - exp.startedAt) : base;
 }
 
 function fmtMs(ms) {
@@ -422,17 +466,13 @@ function fmtMs(ms) {
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
   const sec = s % 60;
-  const mm = String(m).padStart(2, '0');
-  const ss = String(sec).padStart(2, '0');
-  if (h > 0) return String(h).padStart(2, '0') + ':' + mm + ':' + ss;
-  return mm + ':' + ss;
+  const mm = String(m).padStart(2,'0'), ss = String(sec).padStart(2,'0');
+  return h > 0 ? String(h).padStart(2,'0') + ':' + mm + ':' + ss : mm + ':' + ss;
 }
 
 function fmtMsLong(ms) {
-  const totalSec = Math.floor(ms / 1000);
-  const h = Math.floor(totalSec / 3600);
-  const m = Math.floor((totalSec % 3600) / 60);
-  const s = totalSec % 60;
+  const t = Math.floor(ms / 1000);
+  const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
   if (h > 0) return h + '時間 ' + m + '分 ' + s + '秒';
   if (m > 0) return m + '分 ' + s + '秒';
   return s + '秒';
@@ -448,49 +488,75 @@ function fmtDatetime(ts) {
     String(d.getMinutes()).padStart(2,'0');
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+//  WAX BLEND HELPERS
+// ════════════════════════════════════════════════════════════
+/**
+ * ワックス配合データを表示用文字列に変換。
+ * 旧データ（waxType: string）との後方互換を保持。
+ */
+function waxBlendText(m) {
+  if (m.waxBlend && m.waxBlend.length > 0) {
+    return m.waxBlend.map(w => w.name + (w.grams ? '(' + w.grams + 'g)' : '')).join(' / ');
+  }
+  // 旧データ互換
+  if (m.waxType) return m.waxType;
+  return '';
+}
+
+/** チップHTML（タイマーカード・履歴用） */
+function waxChipsHtml(m) {
+  if (m.waxBlend && m.waxBlend.length > 0) {
+    return m.waxBlend.map(w =>
+      `<span class="wax-chip">${escHtml(w.name)}${w.grams ? '<span class="wax-chip-g">&nbsp;' + escHtml(w.grams) + 'g</span>' : ''}</span>`
+    ).join('');
+  }
+  if (m.waxType) return `<span class="wax-chip">${escHtml(m.waxType)}</span>`;
+  return '';
+}
+
+// ════════════════════════════════════════════════════════════
 //  TAB SWITCHING
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 function switchTab(name) {
   document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
-  const tabs = document.querySelectorAll('.tab-btn');
-  const names = ['timer', 'masters', 'history', 'settings'];
-  tabs[names.indexOf(name)].classList.add('active');
-  if (name === 'timer')   renderTimers();
-  if (name === 'masters') renderMasters();
-  if (name === 'history') renderHistory();
+  const names = ['timer','masters','history','settings'];
+  document.querySelectorAll('.tab-btn')[names.indexOf(name)].classList.add('active');
+  if (name === 'timer')    renderTimers();
+  if (name === 'masters')  renderMasters();
+  if (name === 'history')  renderHistory();
+  if (name === 'settings') renderWaxMastersList();
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  TIMER RENDERING  (runs on interval)
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+//  TIMER TICK
+// ════════════════════════════════════════════════════════════
 let timerInterval = null;
 
 function startGlobalTick() {
   if (timerInterval) return;
   timerInterval = setInterval(() => {
-    if (document.getElementById('tab-timer').classList.contains('active')) {
-      updateTimerDisplays();
-    }
+    if (document.getElementById('tab-timer').classList.contains('active')) updateTimerDisplays();
   }, 500);
 }
 
 function updateTimerDisplays() {
   experiments.forEach(exp => {
-    const el = document.getElementById('td-' + exp.id);
-    if (el) el.textContent = fmtMs(getElapsedMs(exp));
+    const el  = document.getElementById('td-' + exp.id);
     const el2 = document.getElementById('ts-' + exp.id);
+    if (el)  el.textContent  = fmtMs(getElapsedMs(exp));
     if (el2) el2.textContent = '累計 ' + fmtMsLong(getElapsedMs(exp));
   });
 }
 
+// ════════════════════════════════════════════════════════════
+//  RENDER TIMERS
+// ════════════════════════════════════════════════════════════
 function renderTimers() {
   const container = document.getElementById('timers-list');
-  const addBtn = document.getElementById('add-exp-btn');
-
-  // Show/hide add button
+  const addBtn    = document.getElementById('add-exp-btn');
   addBtn.style.display = experiments.length >= 5 ? 'none' : 'flex';
 
   if (experiments.length === 0) {
@@ -501,100 +567,92 @@ function renderTimers() {
       </div>`;
     return;
   }
-
   container.innerHTML = experiments.map(exp => buildTimerCard(exp)).join('');
 }
 
 function buildTimerCard(exp) {
-  const running = !!exp.startedAt;
-  const elapsed = getElapsedMs(exp);
+  const running   = !!exp.startedAt;
+  const elapsed   = getElapsedMs(exp);
   const cardClass = running ? 'timer-card running' : 'timer-card paused';
-  const pillHtml = running
+  const pillHtml  = running
     ? `<span class="pill pill-run"><span class="pulse-dot"></span>計測中</span>`
     : `<span class="pill pill-pause">停止中</span>`;
-  const playIcon  = running ? '⏸' : '▶';
+  // アイコンは CSS 疑似要素で描画するため空文字
   const playClass = running ? 'btn-play pause-btn' : 'btn-play start-btn';
 
-  // master detail
   const m = exp.masterSnapshot || {};
-  const tags = [
-    m.waxType && ('🪨 ' + m.waxType),
-    m.wickSize && ('🧵 ' + m.wickSize),
+  const waxHtml = waxChipsHtml(m);
+  const otherTags = [
+    m.wickSize         && ('🧵 ' + m.wickSize),
     m.fragrancePercent && ('🌸 ' + m.fragrancePercent + '%'),
-    m.size && ('📦 ' + m.size),
-  ].filter(Boolean);
+    m.size             && ('📦 ' + m.size),
+  ].filter(Boolean).join(' &nbsp;');
 
-  // Laps (show latest 4, reversed)
+  // Laps
   let lapsHtml = '';
   if (exp.laps && exp.laps.length > 0) {
-    const shown = [...exp.laps].reverse().slice(0, 4);
+    const shown = [...exp.laps].reverse().slice(0,4);
     lapsHtml = `<div class="laps-area">
-      ${shown.map((lap, i) => `
+      ${shown.map((lap,i) => `
         <div class="lap-item">
           <span class="lap-badge">#${exp.laps.length - i}</span>
           <span class="lap-time">${fmtMs(lap.elapsed)}</span>
           <span class="lap-memo">${escHtml(lap.memo || '')}</span>
         </div>`).join('')}
-      ${exp.laps.length > 4 ? `<span class="expand-link">他 ${exp.laps.length - 4} 件...</span>` : ''}
+      ${exp.laps.length > 4 ? `<span class="expand-link">他 ${exp.laps.length-4} 件...</span>` : ''}
     </div>`;
   }
 
-  // Free memos (latest 2)
+  // Free memos
   let memosHtml = '';
   if (exp.memos && exp.memos.length > 0) {
-    const shown = [...exp.memos].reverse().slice(0, 2);
+    const shown = [...exp.memos].reverse().slice(0,2);
     memosHtml = `<div style="margin-top:8px;">
       ${shown.map(memo => `
         <div class="memo-chip">
           <div class="memo-chip-time">${fmtMs(memo.elapsed)} — ${fmtDatetime(memo.recordedAt)}</div>
           <div>${escHtml(memo.text)}</div>
         </div>`).join('')}
-      ${exp.memos.length > 2 ? `<span class="expand-link">他 ${exp.memos.length - 2} 件...</span>` : ''}
+      ${exp.memos.length > 2 ? `<span class="expand-link">他 ${exp.memos.length-2} 件...</span>` : ''}
     </div>`;
   }
 
-  // ── [修正] timer-header 内の左エリアを .timer-header-left で囲む ──
   return `
     <div class="${cardClass}" id="exp-card-${exp.id}">
       <div class="timer-header">
         <div class="timer-header-left">
           <div class="timer-name">${escHtml(exp.masterName)}</div>
-          <div class="timer-meta">${tags.join(' &nbsp;') || '詳細なし'}</div>
+          ${waxHtml ? `<div class="wax-blend-list" style="margin-bottom:3px;">${waxHtml}</div>` : ''}
+          <div class="timer-meta">${otherTags || '詳細なし'}</div>
         </div>
         <div class="timer-status-area">
           ${pillHtml}
           <button class="btn btn-danger" style="padding:4px 10px;font-size:11px;border-radius:10px;width:100%;" onclick="deleteExp('${exp.id}')">削除</button>
         </div>
       </div>
-
       <div id="td-${exp.id}" class="timer-display">${fmtMs(elapsed)}</div>
       <div id="ts-${exp.id}" class="timer-sub">累計 ${fmtMsLong(elapsed)}</div>
-
       <div class="timer-controls">
-        <button class="btn btn-icon ${playClass}" onclick="toggleTimer('${exp.id}')">${playIcon}</button>
-        <button class="btn btn-lap" onclick="openLapModal('${exp.id}')">📍 ラップ</button>
+        <button class="btn btn-icon ${playClass}" onclick="toggleTimer('${exp.id}')"></button>
+        <button class="btn btn-lap"         onclick="openLapModal('${exp.id}')">📍 ラップ</button>
         <button class="btn btn-memo-inline" onclick="openFreeMemoModal('${exp.id}')">📝 メモ</button>
-        <button class="btn btn-done" onclick="openDoneModal('${exp.id}')">完了</button>
+        <button class="btn btn-done"        onclick="openDoneModal('${exp.id}')">完了</button>
       </div>
-
       ${lapsHtml}
       ${memosHtml}
     </div>`;
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  EXPERIMENT ACTIONS
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 function toggleTimer(id) {
   const exp = experiments.find(e => e.id === id);
   if (!exp) return;
-
   if (exp.startedAt) {
-    // → PAUSE
     exp.accumulatedMs = (exp.accumulatedMs || 0) + (Date.now() - exp.startedAt);
     exp.startedAt = null;
   } else {
-    // → START / RESUME
     exp.startedAt = Date.now();
   }
   saveExps();
@@ -608,15 +666,14 @@ function deleteExp(id) {
   renderTimers();
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  ADD EXPERIMENT
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+//  ADD EXPERIMENT MODAL
+// ════════════════════════════════════════════════════════════
 function openAddExpModal() {
   if (experiments.length >= 5) { alert('同時計測は最大5件までです'); return; }
   if (masters.length === 0) {
-    alert('先に「レシピ」タブでキャンドルのマスタを登録してください');
-    switchTab('masters');
-    return;
+    alert('先に「レシピ」タブでキャンドルのレシピを登録してください');
+    switchTab('masters'); return;
   }
   const sel = document.getElementById('addexp-master-select');
   sel.innerHTML = '<option value="">── 選択してください ──</option>' +
@@ -627,14 +684,15 @@ function openAddExpModal() {
     const m = masters.find(x => x.id === sel.value);
     const preview = document.getElementById('addexp-master-preview');
     if (m) {
-      const tags = [
-        m.waxType && ('ワックス: ' + m.waxType),
-        m.wickSize && ('芯: ' + m.wickSize),
-        m.fragrancePercent && ('香料: ' + m.fragrancePercent + '%'),
-        m.size && ('大きさ: ' + m.size),
-        m.memo && ('メモ: ' + m.memo),
+      const wt = waxBlendText(m);
+      const rows = [
+        wt               && ('ワックス: ' + wt),
+        m.wickSize       && ('芯: '       + m.wickSize),
+        m.fragrancePercent && ('香料: '   + m.fragrancePercent + '%'),
+        m.size           && ('大きさ: '   + m.size),
+        m.memo           && ('メモ: '     + m.memo),
       ].filter(Boolean);
-      preview.innerHTML = tags.join('<br>') || '詳細なし';
+      preview.innerHTML = rows.join('<br>') || '詳細なし';
       preview.style.display = 'block';
     } else {
       preview.style.display = 'none';
@@ -649,137 +707,192 @@ function confirmAddExp() {
   if (!masterId) { alert('レシピを選択してください'); return; }
   const master = masters.find(m => m.id === masterId);
   if (!master) { alert('レシピが見つかりません'); return; }
-
-  const exp = {
-    id: newId(),
-    masterId: master.id,
-    masterName: master.name,
+  experiments.push({
+    id: newId(), masterId: master.id, masterName: master.name,
     masterSnapshot: { ...master },
-    accumulatedMs: 0,
-    startedAt: null,
-    laps: [],
-    memos: [],
+    accumulatedMs: 0, startedAt: null, laps: [], memos: [],
     createdAt: Date.now(),
-  };
-  experiments.push(exp);
+  });
   saveExps();
   closeModal('modal-addexp');
   renderTimers();
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  LAP
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 function openLapModal(id) {
   const exp = experiments.find(e => e.id === id);
   if (!exp) return;
   const elapsed = getElapsedMs(exp);
-  document.getElementById('lap-exp-id').value = id;
+  document.getElementById('lap-exp-id').value          = id;
+  document.getElementById('lap-exp-id').dataset.snapMs = elapsed;
   document.getElementById('lap-elapsed-display').textContent = fmtMs(elapsed) + '  (' + fmtMsLong(elapsed) + ')';
   document.getElementById('lap-memo').value = '';
-  // Store snapshot at modal open
-  document.getElementById('lap-exp-id').dataset.snapMs = elapsed;
   openModal('modal-lap');
 }
-
 function confirmLap() {
-  const id = document.getElementById('lap-exp-id').value;
-  const memo = document.getElementById('lap-memo').value.trim();
+  const id     = document.getElementById('lap-exp-id').value;
+  const memo   = document.getElementById('lap-memo').value.trim();
   const snapMs = parseInt(document.getElementById('lap-exp-id').dataset.snapMs) || 0;
-  const exp = experiments.find(e => e.id === id);
+  const exp    = experiments.find(e => e.id === id);
   if (!exp) return;
   exp.laps = exp.laps || [];
-  exp.laps.push({ elapsed: snapMs, memo: memo, recordedAt: Date.now() });
+  exp.laps.push({ elapsed: snapMs, memo, recordedAt: Date.now() });
   saveExps();
   closeModal('modal-lap');
   renderTimers();
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  FREE MEMO
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 function openFreeMemoModal(id) {
   document.getElementById('freememo-exp-id').value = id;
-  document.getElementById('freememo-text').value = '';
+  document.getElementById('freememo-text').value   = '';
   openModal('modal-memo');
 }
-
 function confirmFreeMemo() {
-  const id = document.getElementById('freememo-exp-id').value;
+  const id   = document.getElementById('freememo-exp-id').value;
   const text = document.getElementById('freememo-text').value.trim();
   if (!text) { alert('メモを入力してください'); return; }
   const exp = experiments.find(e => e.id === id);
   if (!exp) return;
   exp.memos = exp.memos || [];
-  exp.memos.push({ text: text, elapsed: getElapsedMs(exp), recordedAt: Date.now() });
+  exp.memos.push({ text, elapsed: getElapsedMs(exp), recordedAt: Date.now() });
   saveExps();
   closeModal('modal-memo');
   renderTimers();
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  DONE / FINISH
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+//  DONE
+// ════════════════════════════════════════════════════════════
 function openDoneModal(id) {
   const exp = experiments.find(e => e.id === id);
   if (!exp) return;
-
-  // Snapshot current elapsed at modal open
   const snapMs = getElapsedMs(exp);
-  document.getElementById('done-exp-id').value = id;
+  document.getElementById('done-exp-id').value          = id;
   document.getElementById('done-exp-id').dataset.snapMs = snapMs;
-
-  const lapCount = (exp.laps || []).length;
-  const memoCount = (exp.memos || []).length;
   document.getElementById('done-summary').innerHTML = `
     <strong>${escHtml(exp.masterName)}</strong><br>
     累計時間: <strong>${fmtMsLong(snapMs)}</strong><br>
-    ラップ: ${lapCount}件 ／ メモ: ${memoCount}件<br>
-    開始: ${fmtDatetime(exp.createdAt)}
-  `;
+    ラップ: ${(exp.laps||[]).length}件 ／ メモ: ${(exp.memos||[]).length}件<br>
+    開始: ${fmtDatetime(exp.createdAt)}`;
   openModal('modal-done');
 }
-
 function confirmDone() {
-  const id = document.getElementById('done-exp-id').value;
-  const snapMs = parseInt(document.getElementById('done-exp-id').dataset.snapMs) || 0;
+  const id       = document.getElementById('done-exp-id').value;
+  const snapMs   = parseInt(document.getElementById('done-exp-id').dataset.snapMs) || 0;
   const expIndex = experiments.findIndex(e => e.id === id);
-  if (expIndex === -1) {
-    alert('実験が見つかりませんでした');
-    closeModal('modal-done');
-    return;
-  }
-
+  if (expIndex === -1) { alert('実験が見つかりませんでした'); closeModal('modal-done'); return; }
   const exp = experiments[expIndex];
-
-  // Push to history
-  const record = {
-    id: newId(),
-    expId: exp.id,
-    masterId: exp.masterId,
-    masterName: exp.masterName,
+  history.push({
+    id: newId(), expId: exp.id,
+    masterId: exp.masterId, masterName: exp.masterName,
     masterSnapshot: exp.masterSnapshot || {},
     accumulatedMs: snapMs,
-    laps: exp.laps || [],
-    memos: exp.memos || [],
-    createdAt: exp.createdAt,
-    finishedAt: Date.now(),
-  };
-  history.push(record);
+    laps: exp.laps || [], memos: exp.memos || [],
+    createdAt: exp.createdAt, finishedAt: Date.now(),
+  });
   saveHistory();
-
-  // Remove from active experiments
   experiments.splice(expIndex, 1);
   saveExps();
-
   closeModal('modal-done');
   renderTimers();
   showToast('✅ 実験を履歴に保存しました');
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  MASTERS CRUD
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+//  WAX MASTERS (設定タブ)
+// ════════════════════════════════════════════════════════════
+function addWaxMaster() {
+  const input = document.getElementById('new-wax-name');
+  const name  = input.value.trim();
+  if (!name) { alert('ワックス名を入力してください'); return; }
+  if (waxMasters.some(w => w.name === name)) { alert('同じ名前のワックスが既に登録されています'); return; }
+  waxMasters.push({ id: newId(), name });
+  saveWaxMasters();
+  input.value = '';
+  renderWaxMastersList();
+}
+
+function deleteWaxMaster(id) {
+  if (!confirm('このワックスを削除しますか？\n（登録済みレシピには影響しません）')) return;
+  waxMasters = waxMasters.filter(w => w.id !== id);
+  saveWaxMasters();
+  renderWaxMastersList();
+}
+
+function renderWaxMastersList() {
+  const container = document.getElementById('wax-masters-list');
+  if (waxMasters.length === 0) {
+    container.innerHTML = '<div class="empty-msg" style="text-align:center;font-size:12px;color:var(--gray);padding:8px 0;">登録されたワックスがありません</div>';
+    return;
+  }
+  container.innerHTML = waxMasters.map(w => `
+    <div class="wax-master-item">
+      <span class="wax-master-name">🪨 ${escHtml(w.name)}</span>
+      <button class="btn btn-danger btn-sm" onclick="deleteWaxMaster('${w.id}')">削除</button>
+    </div>`).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+//  RECIPE MODAL — WAX BLEND ROWS
+// ════════════════════════════════════════════════════════════
+function addWaxRow(name, grams) {
+  const container = document.getElementById('wax-rows');
+  const rowId     = 'wax-row-' + newId();
+
+  if (waxMasters.length === 0) {
+    const empty = container.querySelector('.wax-blend-empty');
+    if (!empty) {
+      const msg = document.createElement('div');
+      msg.className = 'wax-blend-empty';
+      msg.textContent = '先に設定タブでワックスマスタを登録してください';
+      container.insertBefore(msg, container.firstChild);
+    }
+    return;
+  }
+
+  const options = waxMasters.map(w =>
+    `<option value="${escHtml(w.name)}" ${w.name === name ? 'selected' : ''}>${escHtml(w.name)}</option>`
+  ).join('');
+
+  const row = document.createElement('div');
+  row.className = 'wax-blend-row';
+  row.id = rowId;
+  row.innerHTML = `
+    <select style="min-width:0;">
+      <option value="">── 種類 ──</option>
+      ${options}
+    </select>
+    <input type="number" placeholder="g" min="0" step="1" value="${grams || ''}">
+    <button type="button" class="wax-row-del" onclick="removeWaxRow('${rowId}')">×</button>`;
+  container.appendChild(row);
+}
+
+function removeWaxRow(rowId) {
+  const el = document.getElementById(rowId);
+  if (el) el.remove();
+}
+
+function collectWaxRows() {
+  const rows = document.querySelectorAll('#wax-rows .wax-blend-row');
+  const result = [];
+  rows.forEach(row => {
+    const sel   = row.querySelector('select');
+    const input = row.querySelector('input');
+    const name  = sel ? sel.value.trim() : '';
+    const grams = input ? input.value.trim() : '';
+    if (name) result.push({ name, grams: grams || '' });
+  });
+  return result;
+}
+
+// ════════════════════════════════════════════════════════════
+//  RECIPE CRUD
+// ════════════════════════════════════════════════════════════
 function renderMasters() {
   const container = document.getElementById('masters-list');
   if (masters.length === 0) {
@@ -790,48 +903,60 @@ function renderMasters() {
       </div>`;
     return;
   }
-  container.innerHTML = masters.map(m => `
-    <div class="master-card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-        <div style="flex:1;min-width:0;">
-          <div class="master-card-name">${escHtml(m.name)}</div>
-          <div class="master-card-detail">
-            ${[
-              m.waxType        && ('ワックス: ' + m.waxType),
-              m.wickSize       && ('芯サイズ: ' + m.wickSize),
-              m.fragrancePercent && ('香料: ' + m.fragrancePercent + '%'),
-              m.size           && ('大きさ: ' + m.size),
-            ].filter(Boolean).join(' ／ ')}
-            ${m.memo ? '<br><span style="color:#999;">' + escHtml(m.memo) + '</span>' : ''}
+  container.innerHTML = masters.map(m => {
+    const waxHtml = waxChipsHtml(m);
+    const details = [
+      m.wickSize         && ('芯サイズ: ' + m.wickSize),
+      m.fragrancePercent && ('香料: '     + m.fragrancePercent + '%'),
+      m.size             && ('大きさ: '   + m.size),
+    ].filter(Boolean).join(' ／ ');
+    return `
+      <div class="master-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div style="flex:1;min-width:0;">
+            <div class="master-card-name">${escHtml(m.name)}</div>
+            ${waxHtml ? `<div class="wax-blend-list" style="margin-bottom:4px;">${waxHtml}</div>` : ''}
+            <div class="master-card-detail">
+              ${details}
+              ${m.memo ? '<br><span style="color:#999;">' + escHtml(m.memo) + '</span>' : ''}
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;margin-left:10px;">
+            <button class="btn btn-secondary btn-sm" onclick="openMasterModal('${m.id}')">編集</button>
+            <button class="btn btn-danger btn-sm"    onclick="deleteMaster('${m.id}')">削除</button>
           </div>
         </div>
-        <div style="display:flex;gap:6px;flex-shrink:0;margin-left:10px;">
-          <button class="btn btn-secondary btn-sm" onclick="openMasterModal('${m.id}')">編集</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteMaster('${m.id}')">削除</button>
-        </div>
-      </div>
-    </div>`).join('');
+      </div>`;
+  }).join('');
 }
 
 function openMasterModal(id) {
   document.getElementById('master-edit-id').value = id || '';
   document.getElementById('modal-master-title').textContent = id ? 'レシピを編集' : 'レシピを登録';
+  // waxRowsをリセット
+  document.getElementById('wax-rows').innerHTML = '';
+
   if (id) {
     const m = masters.find(x => x.id === id);
     if (!m) return;
-    document.getElementById('m-name').value  = m.name || '';
-    document.getElementById('m-wax').value   = m.waxType || '';
-    document.getElementById('m-wick').value  = m.wickSize || '';
-    document.getElementById('m-frag').value  = m.fragrancePercent || '';
-    document.getElementById('m-size').value  = m.size || '大';
-    document.getElementById('m-memo').value  = m.memo || '';
+    document.getElementById('m-name').value = m.name  || '';
+    document.getElementById('m-wick').value = m.wickSize || '';
+    document.getElementById('m-frag').value = m.fragrancePercent || '';
+    document.getElementById('m-size').value = m.size  || '大';
+    document.getElementById('m-memo').value = m.memo  || '';
+    // 配合データを復元（旧データ互換）
+    if (m.waxBlend && m.waxBlend.length > 0) {
+      m.waxBlend.forEach(w => addWaxRow(w.name, w.grams));
+    } else if (m.waxType) {
+      // 旧データを1行として表示（マスタにない場合はセレクト空欄）
+      addWaxRow(m.waxType, '');
+    }
   } else {
-    document.getElementById('m-name').value  = '';
-    document.getElementById('m-wax').value   = '';
-    document.getElementById('m-wick').value  = '';
-    document.getElementById('m-frag').value  = '';
-    document.getElementById('m-size').value  = '大';
-    document.getElementById('m-memo').value  = '';
+    document.getElementById('m-name').value = '';
+    document.getElementById('m-wick').value = '';
+    document.getElementById('m-frag').value = '';
+    document.getElementById('m-size').value = '大';
+    document.getElementById('m-memo').value = '';
   }
   openModal('modal-master');
 }
@@ -842,18 +967,17 @@ function saveMaster() {
   const id = document.getElementById('master-edit-id').value;
   const data = {
     id: id || newId(),
-    name: name,
-    waxType: document.getElementById('m-wax').value.trim(),
-    wickSize: document.getElementById('m-wick').value.trim(),
-    fragrancePercent: document.getElementById('m-frag').value.trim(),
-    size: document.getElementById('m-size').value,
-    memo: document.getElementById('m-memo').value.trim(),
+    name,
+    waxBlend:          collectWaxRows(),
+    wickSize:          document.getElementById('m-wick').value.trim(),
+    fragrancePercent:  document.getElementById('m-frag').value.trim(),
+    size:              document.getElementById('m-size').value,
+    memo:              document.getElementById('m-memo').value.trim(),
   };
-  if (id) {
-    masters = masters.map(m => m.id === id ? data : m);
-  } else {
-    masters.push(data);
-  }
+  // 旧データフィールドは削除して統一
+  delete data.waxType;
+
+  masters = id ? masters.map(m => m.id === id ? data : m) : [...masters, data];
   saveMasters();
   closeModal('modal-master');
   renderMasters();
@@ -866,9 +990,9 @@ function deleteMaster(id) {
   renderMasters();
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  HISTORY RENDERING
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+//  HISTORY
+// ════════════════════════════════════════════════════════════
 function renderHistory() {
   const container = document.getElementById('history-list');
   if (history.length === 0) {
@@ -879,37 +1003,34 @@ function renderHistory() {
       </div>`;
     return;
   }
-
   container.innerHTML = [...history].reverse().map((rec, ri) => {
     const origIdx = history.length - 1 - ri;
     const m = rec.masterSnapshot || {};
-    const tags = [
-      m.waxType && m.waxType,
-      m.wickSize && ('芯: ' + m.wickSize),
+    const waxHtml  = waxChipsHtml(m);
+    const metaTags = [
+      m.wickSize         && ('芯: '   + m.wickSize),
       m.fragrancePercent && (m.fragrancePercent + '%'),
-      m.size && m.size,
-    ].filter(Boolean);
+      m.size             && m.size,
+    ].filter(Boolean).map(t => `<span class="master-tag">${escHtml(t)}</span>`).join('');
 
-    const lapsHtml = (rec.laps || []).length > 0 ? `
+    const lapsHtml = (rec.laps||[]).length > 0 ? `
       <hr class="hist-divider">
       <div style="font-size:11px;font-weight:600;color:var(--sage-d);margin-bottom:6px;">ラップ記録</div>
-      ${rec.laps.map((lap, i) => `
+      ${rec.laps.map((lap,i) => `
         <div class="lap-item">
           <span class="lap-badge">#${i+1}</span>
           <span class="lap-time">${fmtMs(lap.elapsed)}</span>
-          <span class="lap-memo">${escHtml(lap.memo || '—')}</span>
-        </div>`).join('')}
-    ` : '';
+          <span class="lap-memo">${escHtml(lap.memo||'—')}</span>
+        </div>`).join('')}` : '';
 
-    const memosHtml = (rec.memos || []).length > 0 ? `
+    const memosHtml = (rec.memos||[]).length > 0 ? `
       <hr class="hist-divider">
       <div style="font-size:11px;font-weight:600;color:var(--sage-d);margin-bottom:6px;">メモ</div>
       ${rec.memos.map(memo => `
         <div class="memo-chip">
           <div class="memo-chip-time">${fmtMs(memo.elapsed)} — ${fmtDatetime(memo.recordedAt)}</div>
           <div>${escHtml(memo.text)}</div>
-        </div>`).join('')}
-    ` : '';
+        </div>`).join('')}` : '';
 
     return `
       <div class="hist-card">
@@ -918,7 +1039,8 @@ function renderHistory() {
             <div class="hist-name">${escHtml(rec.masterName)}</div>
             <div class="hist-meta">
               ${fmtDatetime(rec.createdAt)} 〜 ${fmtDatetime(rec.finishedAt)}<br>
-              ${tags.map(t => `<span class="master-tag">${escHtml(t)}</span>`).join('')}
+              ${waxHtml ? '<div class="wax-blend-list" style="margin:3px 0;">' + waxHtml + '</div>' : ''}
+              ${metaTags}
             </div>
           </div>
           <button class="btn btn-danger btn-sm" style="flex-shrink:0;margin-left:8px;" onclick="deleteHistoryItem(${origIdx})">削除</button>
@@ -933,11 +1055,10 @@ function renderHistory() {
 
 function deleteHistoryItem(idx) {
   if (!confirm('この記録を削除しますか？')) return;
-  history.splice(idx, 1);
+  history.splice(idx,1);
   saveHistory();
   renderHistory();
 }
-
 function clearAllHistory() {
   if (!confirm('すべての履歴を削除しますか？\nこの操作は元に戻せません。')) return;
   history = [];
@@ -945,76 +1066,97 @@ function clearAllHistory() {
   renderHistory();
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  CSV EXPORT
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 function exportCSV() {
   if (history.length === 0) { alert('履歴がありません'); return; }
 
   const rows = [];
-  rows.push(['記録ID','実験名','ワックス','芯サイズ','香料%','大きさ','合計時間','合計時間(ms)','開始日時','終了日時','ラップ#','ラップ経過時間','ラップメモ','メモ経過時間','メモ内容']);
+  // ヘッダー：ワックス配合は最大列数に合わせて動的生成
+  const maxWaxCols = history.reduce((acc, rec) => {
+    const m = rec.masterSnapshot || {};
+    const cnt = (m.waxBlend && m.waxBlend.length) ? m.waxBlend.length : (m.waxType ? 1 : 0);
+    return Math.max(acc, cnt);
+  }, 0);
+
+  const waxHeaders = [];
+  for (let i = 1; i <= maxWaxCols; i++) {
+    waxHeaders.push('ワックス' + i + '_名前', 'ワックス' + i + '_g');
+  }
+
+  rows.push([
+    '記録ID','実験名',
+    ...waxHeaders,
+    '芯サイズ','香料%','大きさ',
+    '合計時間','合計時間(ms)','開始日時','終了日時',
+    'ラップ#','ラップ経過時間','ラップメモ','メモ経過時間','メモ内容'
+  ]);
 
   history.forEach(rec => {
     const m = rec.masterSnapshot || {};
+    // ワックス配合列を生成
+    let waxBlend = [];
+    if (m.waxBlend && m.waxBlend.length > 0) {
+      waxBlend = m.waxBlend;
+    } else if (m.waxType) {
+      waxBlend = [{ name: m.waxType, grams: '' }];
+    }
+    const waxCols = [];
+    for (let i = 0; i < maxWaxCols; i++) {
+      waxCols.push(waxBlend[i] ? waxBlend[i].name : '', waxBlend[i] ? waxBlend[i].grams : '');
+    }
+
     const baseRow = [
-      rec.id, rec.masterName, m.waxType||'', m.wickSize||'',
-      m.fragrancePercent||'', m.size||'',
+      rec.id, rec.masterName,
+      ...waxCols,
+      m.wickSize||'', m.fragrancePercent||'', m.size||'',
       fmtMsLong(rec.accumulatedMs), rec.accumulatedMs,
       fmtDatetime(rec.createdAt), fmtDatetime(rec.finishedAt),
     ];
 
-    const laps   = rec.laps  || [];
-    const memos  = rec.memos || [];
+    const laps  = rec.laps  || [];
+    const memos = rec.memos || [];
     const maxRows = Math.max(1, laps.length, memos.length);
-
     for (let i = 0; i < maxRows; i++) {
-      const lap   = laps[i]  || null;
-      const memo  = memos[i] || null;
+      const lap  = laps[i]  || null;
+      const memo = memos[i] || null;
       rows.push([
         ...baseRow,
-        lap  ? i+1              : '',
-        lap  ? fmtMs(lap.elapsed)  : '',
-        lap  ? (lap.memo || '')    : '',
-        memo ? fmtMs(memo.elapsed) : '',
-        memo ? memo.text           : '',
+        lap  ? i+1                : '',
+        lap  ? fmtMs(lap.elapsed) : '',
+        lap  ? (lap.memo||'')     : '',
+        memo ? fmtMs(memo.elapsed): '',
+        memo ? memo.text          : '',
       ]);
     }
   });
 
-  const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const csv  = rows.map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
   a.download = 'candle_experiment_' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  BACKUP / RESTORE
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 function doExportBackup() {
   const data = {
-    version: '1.1',
-    exportDate: new Date().toISOString(),
-    masters: masters,
-    experiments: experiments,
-    history: history,
+    version: '2.0', exportDate: new Date().toISOString(),
+    masters, experiments, history, waxMasters,
   };
   document.getElementById('backup-text').value = JSON.stringify(data, null, 2);
   document.getElementById('backup-display').style.display = 'block';
 }
-
 function copyBackup() {
   const ta = document.getElementById('backup-text');
   if (navigator.clipboard) {
     navigator.clipboard.writeText(ta.value).then(() => showToast('コピーしました'));
-  } else {
-    ta.select();
-    document.execCommand('copy');
-    showToast('コピーしました');
-  }
+  } else { ta.select(); document.execCommand('copy'); showToast('コピーしました'); }
 }
-
 function doImportBackup() {
   const input = document.getElementById('restore-text').value.trim();
   if (!input) { alert('データを貼り付けてください'); return; }
@@ -1025,81 +1167,61 @@ function doImportBackup() {
     masters     = d.masters;
     experiments = d.experiments || [];
     history     = d.history;
-    saveMasters();
-    saveExps();
-    saveHistory();
+    waxMasters  = d.waxMasters  || [];
+    saveMasters(); saveExps(); saveHistory(); saveWaxMasters();
     document.getElementById('restore-text').value = '';
     showToast('✅ 復元が完了しました');
-    renderTimers();
-    renderMasters();
-    renderHistory();
-  } catch(e) {
-    alert('読み込み失敗: ' + e.message);
-  }
+    renderTimers(); renderMasters(); renderHistory(); renderWaxMastersList();
+  } catch(e) { alert('読み込み失敗: ' + e.message); }
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  MODAL HELPERS
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 function openModal(id) {
   document.getElementById(id).style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
-
 function closeModal(id) {
   document.getElementById(id).style.display = 'none';
   document.body.style.overflow = '';
 }
-
 function closeModalIf(event, id) {
   if (event.target === document.getElementById(id)) closeModal(id);
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  TOAST
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 function showToast(msg) {
-  let toast = document.getElementById('cl-toast');
-  if (!toast) {
-    toast = document.createElement('div');
-    toast.id = 'cl-toast';
-    toast.style.cssText = `
-      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
-      background: var(--sage-d); color: #fff; padding: 11px 22px; border-radius: 20px;
-      font-size: 13px; font-weight: 500; z-index: 9999; opacity: 0;
-      transition: all .3s cubic-bezier(.4,0,.2,1); pointer-events: none; white-space: nowrap;
-    `;
-    document.body.appendChild(toast);
+  let t = document.getElementById('cl-toast');
+  if (!t) {
+    t = document.createElement('div'); t.id = 'cl-toast';
+    t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--sage-d);color:#fff;padding:11px 22px;border-radius:20px;font-size:13px;font-weight:500;z-index:9999;opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);pointer-events:none;white-space:nowrap;';
+    document.body.appendChild(t);
   }
-  toast.textContent = msg;
-  toast.style.opacity = '1';
-  toast.style.transform = 'translateX(-50%) translateY(0)';
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateX(-50%) translateY(10px)';
-  }, 2400);
+  t.textContent = msg;
+  t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(t._t);
+  t._t = setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(10px)'; }, 2400);
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  UTILS
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 function escHtml(str) {
   if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  INIT
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 (function init() {
   renderTimers();
   renderMasters();
   renderHistory();
+  renderWaxMastersList();
   startGlobalTick();
 })();
 </script>
