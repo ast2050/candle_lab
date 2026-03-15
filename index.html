@@ -613,8 +613,8 @@ function checkAutoStop() {
   let stopped = false;
   experiments.forEach(exp => {
     if (!exp.startedAt) return;
-    const elapsed = getElapsedMs(exp);
-    if (elapsed >= maxMs) {
+    const sessionMs = Date.now() - exp.startedAt;
+    if (sessionMs >= maxMs) {
       exp.accumulatedMs = (exp.accumulatedMs || 0) + (Date.now() - exp.startedAt);
       exp.startedAt = null;
       showToast('⏸ ' + exp.masterName + ' のタイマーが' + settings.maxDurationHours + '時間に達したため自動停止しました');
