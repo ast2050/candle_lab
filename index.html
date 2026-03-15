@@ -142,11 +142,14 @@
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
   /* ─── LAPS / MEMOS ─── */
-  .laps-area { margin-top: 12px; max-height: 130px; overflow-y: auto; }
-  .lap-item   { display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f0f0ea; font-size: 11px; color: #555; }
+  .laps-area { margin-top: 12px; max-height: 160px; overflow-y: auto; }
+  .lap-item   { display: flex; gap: 6px; align-items: center; padding: 5px 0; border-bottom: 1px solid #f0f0ea; font-size: 11px; color: #555; flex-wrap: wrap; }
   .lap-badge  { font-size: 10px; font-weight: 700; color: var(--sage-d); min-width: 24px; }
   .lap-time   { font-variant-numeric: tabular-nums; color: var(--sage-d); font-weight: 600; min-width: 54px; }
+  .lap-date   { color: var(--gray); font-size: 10px; min-width: 96px; }
   .lap-memo   { color: var(--gray-d); flex: 1; }
+  .btn-lap-edit { font-size: 10px; padding: 2px 8px; border-radius: 8px; background: #fff; border: 1px solid var(--sage-l); color: var(--sage-d); cursor: pointer; flex-shrink: 0; transition: background .15s; }
+  .btn-lap-edit:hover { background: #f0f5ef; }
   .memo-chip      { background: #f3f1ec; border-radius: 10px; padding: 5px 10px; margin-bottom: 4px; font-size: 11px; color: #555; }
   .memo-chip-time { font-size: 10px; color: var(--sage-d); font-weight: 600; margin-bottom: 2px; }
   .expand-link    { font-size: 10px; color: var(--sage); cursor: pointer; text-align: right; padding-top: 3px; display: block; }
@@ -254,6 +257,24 @@
 
   <!-- ── SETTINGS TAB ── -->
   <div id="tab-settings" class="page">
+
+    <!-- タイマー設定 -->
+    <div class="sec-title">タイマー設定</div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label>最大連続計測時間（0 = 無制限）</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="number" id="setting-max-hours" min="0" max="72" step="1"
+            style="width:90px;flex-shrink:0;"
+            value="5"
+            onchange="saveMaxDurationSetting()">
+          <span style="font-size:13px;color:var(--gray-d);">時間</span>
+        </div>
+        <div style="font-size:11px;color:var(--gray);margin-top:6px;">設定した時間を超えると、タイマーが自動的に一時停止します。</div>
+      </div>
+    </div>
+
+    <hr class="sec-divider">
 
     <!-- ワックスマスタ管理 -->
     <div class="sec-title">ワックスマスタ</div>
@@ -423,6 +444,46 @@
   </div>
 </div>
 
+<!-- LAP EDIT MODAL -->
+<div id="modal-lap-edit" class="modal-backdrop" style="display:none;" onclick="closeModalIf(event,'modal-lap-edit')">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <h2>📍 ラップを編集</h2>
+    <input type="hidden" id="lap-edit-exp-id">
+    <input type="hidden" id="lap-edit-index">
+    <div class="form-group">
+      <label>記録日時</label>
+      <input type="datetime-local" id="lap-edit-time">
+    </div>
+    <div class="form-group">
+      <label>メモ</label>
+      <textarea id="lap-edit-memo" placeholder="メモ（任意）"></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-danger" style="flex:1;" onclick="confirmDeleteLap()">削除</button>
+      <button class="btn btn-secondary" style="flex:1;" onclick="closeModal('modal-lap-edit')">キャンセル</button>
+      <button class="btn btn-primary" style="flex:1;" onclick="confirmLapEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- STALE TIMER CHECK MODAL -->
+<div id="modal-stale" class="modal-backdrop" style="display:none;">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <h2>🕯 タイマーが動き続けています</h2>
+    <div id="stale-info" style="background:#f3f6f2;border-radius:14px;padding:14px 16px;font-size:13px;color:var(--gray-d);line-height:2;margin-bottom:10px;"></div>
+    <div style="font-size:12px;color:var(--text);margin-bottom:14px;">まだキャンドルを燃焼していますか？</div>
+    <div class="modal-btns" style="margin-bottom:10px;">
+      <button class="btn btn-secondary" style="flex:1;" onclick="staleKeepGoing()">はい、続ける</button>
+      <button class="btn btn-primary" style="flex:1;background:linear-gradient(135deg,var(--amber),#c49060);" onclick="staleShowStop()">いいえ（止め忘れ）</button>
+    </div>
+    <div id="stale-stop-area" style="display:none;border-top:1px solid #eae8e0;padding-top:12px;">
+      <div style="font-size:12px;color:var(--sage-d);font-weight:600;margin-bottom:6px;">タイマーを止めた実際の時刻を入力してください</div>
+      <input type="datetime-local" id="stale-stop-time" style="margin-bottom:10px;">
+      <button class="btn btn-primary btn-full" onclick="staleConfirmStop()">この時刻で停止する</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ════════════════════════════════════════════════════════════
 //  STORAGE KEYS
@@ -431,6 +492,7 @@ const LS_MASTERS     = 'cl_masters';
 const LS_EXPS        = 'cl_experiments';
 const LS_HISTORY     = 'cl_history';
 const LS_WAX_MASTERS = 'cl_wax_masters';
+const LS_SETTINGS    = 'cl_settings';
 
 function lsGet(key, def) {
   try { const v = localStorage.getItem(key); return v !== null ? JSON.parse(v) : def; }
@@ -445,11 +507,13 @@ let masters     = lsGet(LS_MASTERS, []);
 let experiments = lsGet(LS_EXPS, []);
 let history     = lsGet(LS_HISTORY, []);
 let waxMasters  = lsGet(LS_WAX_MASTERS, []);
+let settings    = lsGet(LS_SETTINGS, { maxDurationHours: 5 });
 
 function saveMasters()    { lsSet(LS_MASTERS, masters); }
 function saveExps()       { lsSet(LS_EXPS, experiments); }
 function saveHistory()    { lsSet(LS_HISTORY, history); }
 function saveWaxMasters() { lsSet(LS_WAX_MASTERS, waxMasters); }
+function saveSettings()   { lsSet(LS_SETTINGS, settings); }
 
 function newId() { return Date.now() + '_' + Math.floor(Math.random() * 100000); }
 
@@ -527,7 +591,7 @@ function switchTab(name) {
   if (name === 'timer')    renderTimers();
   if (name === 'masters')  renderMasters();
   if (name === 'history')  renderHistory();
-  if (name === 'settings') renderWaxMastersList();
+  if (name === 'settings') { renderWaxMastersList(); renderSettingsValues(); }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -538,8 +602,29 @@ let timerInterval = null;
 function startGlobalTick() {
   if (timerInterval) return;
   timerInterval = setInterval(() => {
+    checkAutoStop();
     if (document.getElementById('tab-timer').classList.contains('active')) updateTimerDisplays();
   }, 500);
+}
+
+function checkAutoStop() {
+  const maxMs = (settings.maxDurationHours || 0) * 3600 * 1000;
+  if (maxMs <= 0) return;
+  let stopped = false;
+  experiments.forEach(exp => {
+    if (!exp.startedAt) return;
+    const elapsed = getElapsedMs(exp);
+    if (elapsed >= maxMs) {
+      exp.accumulatedMs = (exp.accumulatedMs || 0) + (Date.now() - exp.startedAt);
+      exp.startedAt = null;
+      showToast('⏸ ' + exp.masterName + ' のタイマーが' + settings.maxDurationHours + '時間に達したため自動停止しました');
+      stopped = true;
+    }
+  });
+  if (stopped) {
+    saveExps();
+    if (document.getElementById('tab-timer').classList.contains('active')) renderTimers();
+  }
 }
 
 function updateTimerDisplays() {
@@ -593,12 +678,17 @@ function buildTimerCard(exp) {
   if (exp.laps && exp.laps.length > 0) {
     const shown = [...exp.laps].reverse().slice(0,4);
     lapsHtml = `<div class="laps-area">
-      ${shown.map((lap,i) => `
+      ${shown.map((lap,i) => {
+        const lapIdx = exp.laps.length - 1 - i;
+        return `
         <div class="lap-item">
           <span class="lap-badge">#${exp.laps.length - i}</span>
           <span class="lap-time">${fmtMs(lap.elapsed)}</span>
+          <span class="lap-date">${fmtDatetime(lap.recordedAt)}</span>
           <span class="lap-memo">${escHtml(lap.memo || '')}</span>
-        </div>`).join('')}
+          <button class="btn btn-lap-edit" onclick="openLapEditModal('${exp.id}',${lapIdx})">編集</button>
+        </div>`;
+      }).join('')}
       ${exp.laps.length > 4 ? `<span class="expand-link">他 ${exp.laps.length-4} 件...</span>` : ''}
     </div>`;
   }
@@ -744,6 +834,59 @@ function confirmLap() {
   renderTimers();
 }
 
+function openLapEditModal(expId, lapIdx) {
+  const exp = experiments.find(e => e.id === expId);
+  if (!exp || !exp.laps[lapIdx]) return;
+  const lap = exp.laps[lapIdx];
+
+  document.getElementById('lap-edit-exp-id').value = expId;
+  document.getElementById('lap-edit-index').value  = lapIdx;
+  document.getElementById('lap-edit-memo').value   = lap.memo || '';
+
+  const ts = lap.recordedAt ? new Date(lap.recordedAt) : new Date();
+  const localStr = ts.getFullYear() + '-' +
+    String(ts.getMonth()+1).padStart(2,'0') + '-' +
+    String(ts.getDate()).padStart(2,'0') + 'T' +
+    String(ts.getHours()).padStart(2,'0') + ':' +
+    String(ts.getMinutes()).padStart(2,'0');
+  document.getElementById('lap-edit-time').value = localStr;
+
+  openModal('modal-lap-edit');
+}
+
+function confirmLapEdit() {
+  const expId  = document.getElementById('lap-edit-exp-id').value;
+  const lapIdx = parseInt(document.getElementById('lap-edit-index').value);
+  const memo   = document.getElementById('lap-edit-memo').value.trim();
+  const timeVal = document.getElementById('lap-edit-time').value;
+
+  const exp = experiments.find(e => e.id === expId);
+  if (!exp || !exp.laps[lapIdx]) return;
+
+  if (timeVal) {
+    const ts = new Date(timeVal).getTime();
+    if (!isNaN(ts)) exp.laps[lapIdx].recordedAt = ts;
+  }
+  exp.laps[lapIdx].memo = memo;
+  saveExps();
+  closeModal('modal-lap-edit');
+  renderTimers();
+  showToast('✅ ラップを更新しました');
+}
+
+function confirmDeleteLap() {
+  const expId  = document.getElementById('lap-edit-exp-id').value;
+  const lapIdx = parseInt(document.getElementById('lap-edit-index').value);
+  if (!confirm('このラップを削除しますか？')) return;
+  const exp = experiments.find(e => e.id === expId);
+  if (!exp) return;
+  exp.laps.splice(lapIdx, 1);
+  saveExps();
+  closeModal('modal-lap-edit');
+  renderTimers();
+  showToast('🗑 ラップを削除しました');
+}
+
 // ════════════════════════════════════════════════════════════
 //  FREE MEMO
 // ════════════════════════════════════════════════════════════
@@ -822,6 +965,18 @@ function deleteWaxMaster(id) {
   waxMasters = waxMasters.filter(w => w.id !== id);
   saveWaxMasters();
   renderWaxMastersList();
+}
+
+function saveMaxDurationSetting() {
+  const val = parseInt(document.getElementById('setting-max-hours').value) || 0;
+  settings.maxDurationHours = val < 0 ? 0 : val;
+  saveSettings();
+  showToast('✅ 設定を保存しました');
+}
+
+function renderSettingsValues() {
+  const el = document.getElementById('setting-max-hours');
+  if (el) el.value = settings.maxDurationHours ?? 5;
 }
 
 function renderWaxMastersList() {
@@ -1215,6 +1370,75 @@ function escHtml(str) {
 }
 
 // ════════════════════════════════════════════════════════════
+//  STALE TIMER CHECK
+// ════════════════════════════════════════════════════════════
+let _staleQueue = [];   // 確認待ちの実験IDリスト
+let _staleCurrent = null;
+
+function checkStaleTimers() {
+  const threshold = 60 * 60 * 1000; // 1時間以上動いていたら確認
+  _staleQueue = experiments
+    .filter(e => e.startedAt && getElapsedMs(e) >= threshold)
+    .map(e => e.id);
+  showNextStale();
+}
+
+function showNextStale() {
+  if (_staleQueue.length === 0) return;
+  _staleCurrent = _staleQueue.shift();
+  const exp = experiments.find(e => e.id === _staleCurrent);
+  if (!exp) { showNextStale(); return; }
+
+  const elapsed = getElapsedMs(exp);
+  document.getElementById('stale-info').innerHTML =
+    '<strong>' + escHtml(exp.masterName) + '</strong><br>' +
+    '経過時間: <strong>' + fmtMsLong(elapsed) + '</strong><br>' +
+    '計測開始: ' + fmtDatetime(exp.startedAt);
+
+  document.getElementById('stale-stop-area').style.display = 'none';
+
+  // datetime-local の初期値を現在時刻に
+  const now = new Date();
+  const localStr = now.getFullYear() + '-' +
+    String(now.getMonth()+1).padStart(2,'0') + '-' +
+    String(now.getDate()).padStart(2,'0') + 'T' +
+    String(now.getHours()).padStart(2,'0') + ':' +
+    String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('stale-stop-time').value = localStr;
+  document.getElementById('stale-stop-time').max = localStr;
+
+  document.getElementById('modal-stale').style.display = 'flex';
+}
+
+function staleKeepGoing() {
+  document.getElementById('modal-stale').style.display = 'none';
+  showNextStale();
+}
+
+function staleShowStop() {
+  document.getElementById('stale-stop-area').style.display = 'block';
+}
+
+function staleConfirmStop() {
+  const stopTimeVal = document.getElementById('stale-stop-time').value;
+  if (!stopTimeVal) { alert('時刻を入力してください'); return; }
+  const stopTs = new Date(stopTimeVal).getTime();
+  if (isNaN(stopTs)) { alert('正しい日時を入力してください'); return; }
+
+  const exp = experiments.find(e => e.id === _staleCurrent);
+  if (exp && exp.startedAt) {
+    const added = stopTs - exp.startedAt;
+    exp.accumulatedMs = (exp.accumulatedMs || 0) + Math.max(0, added);
+    exp.startedAt = null;
+    saveExps();
+    renderTimers();
+    showToast('⏸ ' + exp.masterName + ' のタイマーを指定時刻で停止しました');
+  }
+  document.getElementById('modal-stale').style.display = 'none';
+  showNextStale();
+}
+
+// ════════════════════════════════════════════════════════════
 //  INIT
 // ════════════════════════════════════════════════════════════
 (function init() {
@@ -1222,7 +1446,9 @@ function escHtml(str) {
   renderMasters();
   renderHistory();
   renderWaxMastersList();
+  renderSettingsValues();
   startGlobalTick();
+  checkStaleTimers();
 })();
 </script>
 </body>
