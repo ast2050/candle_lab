@@ -598,6 +598,7 @@ function switchTab(name) {
 //  TIMER TICK
 // ════════════════════════════════════════════════════════════
 let timerInterval = null;
+const expandedLaps = new Set();
 
 function startGlobalTick() {
   if (timerInterval) return;
@@ -676,9 +677,12 @@ function buildTimerCard(exp) {
   // Laps
   let lapsHtml = '';
   if (exp.laps && exp.laps.length > 0) {
-    const shown = [...exp.laps].reverse().slice(0,4);
-    lapsHtml = `<div class="laps-area">
-      ${shown.map((lap,i) => {
+    const isExpanded = expandedLaps.has(exp.id);
+    const reversed = [...exp.laps].reverse();
+    const shown = isExpanded ? reversed : reversed.slice(0, 4);
+    const areaStyle = isExpanded ? 'max-height:none;' : '';
+    lapsHtml = `<div class="laps-area" style="${areaStyle}">
+      ${shown.map((lap, i) => {
         const lapIdx = exp.laps.length - 1 - i;
         return `
         <div class="lap-item">
@@ -689,7 +693,11 @@ function buildTimerCard(exp) {
           <button class="btn btn-lap-edit" onclick="openLapEditModal('${exp.id}',${lapIdx})">編集</button>
         </div>`;
       }).join('')}
-      ${exp.laps.length > 4 ? `<span class="expand-link">他 ${exp.laps.length-4} 件...</span>` : ''}
+      ${exp.laps.length > 4
+        ? isExpanded
+          ? `<span class="expand-link" onclick="toggleLapExpand('${exp.id}')">折りたたむ ▲</span>`
+          : `<span class="expand-link" onclick="toggleLapExpand('${exp.id}')">他 ${exp.laps.length - 4} 件を表示 ▼</span>`
+        : ''}
     </div>`;
   }
 
@@ -831,6 +839,15 @@ function confirmLap() {
   exp.laps.push({ elapsed: snapMs, memo, recordedAt: Date.now() });
   saveExps();
   closeModal('modal-lap');
+  renderTimers();
+}
+
+function toggleLapExpand(expId) {
+  if (expandedLaps.has(expId)) {
+    expandedLaps.delete(expId);
+  } else {
+    expandedLaps.add(expId);
+  }
   renderTimers();
 }
 
